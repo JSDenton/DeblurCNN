@@ -1,0 +1,12 @@
+learning_rate:  0.0003 #according to some video, that is the best LR for Adam
+image_size: 64
+dataset_path: "D:/GOPRO/train/blur"
+batch_size: 64
+channel_num: 3
+nz: 100 
+ngf: 64 #size of feature maps in generator
+ndf: 64
+num_epochs: 60
+beta1: 0.5 #for Adam optimizer
+ngpu: 1
+workers: 2
