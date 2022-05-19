@@ -3,3 +3,4 @@ numpy
 matplotlib
 torchvision
 pyyaml
+opencv-python

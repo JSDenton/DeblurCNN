@@ -1,6 +1,6 @@
 learning_rate:  0.0003 #according to some video, that is the best LR for Adam
 image_size: 64
-dataset_path: "D:/GOPRO/train/blur"
+dataset_path: "D:/GOPRO/train/sharp"
 batch_size: 64
 channel_num: 3
 nz: 100 
