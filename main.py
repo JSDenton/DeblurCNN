@@ -31,15 +31,19 @@ def read_settings(filename): #filename with its extension
     with open(filename, 'r') as file:
         sets = load(file, Loader = Loader) #read the settings yaml file
         #print(type(settings))
-                
+
+def save_decoded_image(img, name):
+    img = img.view(img.size(0), 3, 224, 224)
+    vutils.save_image(img, name)
+
 def get_images():
-    path = os.listdir(sets['dataset_path'])
+    path = os.listdir(sets.get('dataset_path'))
     images = []
     if len(path)<=0:
         print("WRONG PATH")
         return
     for i in path:
-        imgs_in_folder = os.listdir(f"{sets['dataset_path']}/{i}")
+        imgs_in_folder = os.listdir(f"{sets.get('dataset_path')}/{i}")
         img1 = cv2.imread(imgs_in_folder[0], cv2.IMREAD_COLOR)
         img2 = cv2.imread(imgs_in_folder[len(imgs_in_folder)-2], cv2.IMREAD_COLOR)
         images.append(img1)
@@ -64,12 +68,12 @@ def __main__():
     start_time = time.time()
     dataset = dset.ImageFolder(root = settings.get('dataset_path'),
                                                 transform = transforms.Compose([
-                                                    transforms.Resize(settings.get('image_size')),
-                                                    transforms.CenterCrop(settings.get('image_size')),
+                                                    transforms.Resize(sets.get('image_size')),
+                                                    transforms.CenterCrop(sets.get('image_size')),
                                                     transforms.ToTensor(),
                                                     transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5))
                                                 ]))
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size = settings.get('batch_size'), shuffle = True, num_workers=settings.get('workers'))
-    device = torch.device("cuda:0" if (torch.cuda.is_available() and settings.get('ngpu') > 0) else "cpu") #using gpu (NVidia) for processing, otherwise using CPU
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size = sets.get('batch_size'), shuffle = True, num_workers=sets.get('workers'))
+    device = torch.device("cuda:0" if (torch.cuda.is_available() and sets.get('ngpu') > 0) else "cpu") #using gpu (NVidia) for processing, otherwise using CPU
 
 __main__()
