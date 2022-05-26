@@ -63,14 +63,17 @@ def get_images():
     return images
 
 def gauss_blur(images):
-    
-    for f in os.listdir(sets.get('blurred_path')): #clear the folder
+    d = os.listdir(sets.get('blurred_path'))
+    d.sort()
+    for f in d: #clear the folder
         os.remove(f"{sets.get('blurred_path')}/{f}")
     print("Cleared blurred images folder ...")
     os.makedirs(sets.get('blurred_path'), exist_ok = True)    
-    for i in range(len(images)):
+    i=0
+    for di in d:
         images[i] = cv2.GaussianBlur(images[i], (31, 31), 0) #31 is a kernel size
-        cv2.imwrite(f"{sets.get('blurred_path')}/img_{i}.png", images[i])
+        cv2.imwrite(f"{sets.get('blurred_path')}/d.jpg", images[i])
+        i+=1
     print("The images have been blurred ...")
     return images
 
