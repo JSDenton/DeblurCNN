@@ -1,14 +1,9 @@
 learning_rate:  0.0003 #according to some video, that is the best LR for Adam
-image_size: 300
+image_size: 224
 dataset_path: "C:/Users/JSO21/Downloads/sharp"
 validation_path: "C:/Users/JSO21/Downloads/DeblurGANv2-master/GOPRO/GOPRO/test/sharp"
 blurred_path: '../blurred' 
-batch_size: 32
+batch_size: 4
 channel_num: 3
-nz: 100 
-ngf: 64 #size of feature maps in generator
-ndf: 64
-num_epochs: 5
-beta1: 0.5 #for Adam optimizer
-ngpu: 1
+num_epochs: 40
 workers: 2

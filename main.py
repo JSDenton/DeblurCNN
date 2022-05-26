@@ -42,6 +42,7 @@ def save_decoded_image(img, name):
 def get_images():
     path = os.listdir(sets.get('dataset_path'))
     images = []
+    path.sort()
     if len(path)<=0:
         print("WRONG PATH")
         return
@@ -114,6 +115,8 @@ def fit(model, dataloader, device, optimizer, criterion, epoch):
 
     return running_loss/len(dataloader.dataset)
 
+#TODO: check if there are already blurred images (fasten code)
+
 
 def __main__():
     if __name__!='__main__':
@@ -123,8 +126,8 @@ def __main__():
     for f in os.listdir('../outputs/saved_images'): #clear the folder
         os.remove(f"../outputs/saved_images/{f}")
 
-    imgs = get_images()
-    blurr_imgs = gauss_blur(imgs)
+    #imgs = get_images()
+    #blurr_imgs = gauss_blur(imgs)
 
     start_time = time.time()
 
@@ -134,12 +137,23 @@ def __main__():
         transforms.ToTensor(),
         #transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5))
         ])
+
+    blurr_imgs = []
+    a = os.listdir(sets.get('blurred_path'))
+    a.sort()
+    for i in a:
+        blurr_imgs.append(i)
+    sharp_imgs = []
+    b = os.listdir(sets.get('dataset_path'))
+    b.sort()
+    for i in b:
+        sharp_imgs.append(i)
     
-    (x_train, x_val, y_train, y_val) = train_test_split(os.listdir(sets.get('blurred_path')), os.listdir(sets.get('dataset_path')), test_size=0.25)
+    (x_train, x_val, y_train, y_val) = train_test_split(blurr_imgs, sharp_imgs, test_size=0.25)
     dataset = DeblurDataset(x_train, y_train, transform, settings=sets)
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=sets.get('batch_size'), shuffle = True, num_workers=sets.get('workers'))
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=sets.get('batch_size'), shuffle = False)
     val_data = DeblurDataset(x_val, y_val, transform, settings=sets)
-    valloader = torch.utils.data.DataLoader(val_data, batch_size=sets.get('batch_size'), shuffle =False, num_workers=sets.get('workers'))
+    valloader = torch.utils.data.DataLoader(val_data, batch_size=sets.get('batch_size'), shuffle =False)
 
 
     device = torch.device("cuda:0" if (torch.cuda.is_available() and sets.get('ngpu') > 0) else "cpu") #using gpu (NVidia) for processing, otherwise using CPU
