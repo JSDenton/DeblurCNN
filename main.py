@@ -36,7 +36,7 @@ def read_settings(filename): #filename with its extension
         #print(type(settings))
 
 def save_decoded_image(img, name):
-    img = img.view(img.size(0), 3, 224, 224)
+    img = img.view(img.size(0), 3, sets.get('image_size'), sets.get('image_size'))
     vutils.save_image(img, name)
 
 def get_images():
@@ -93,7 +93,7 @@ def validate(model, dataloader, val_data, device, criterion, epoch):
                 save_decoded_image(outputs.cpu().data, name=f"../outputs/saved_images/val_deblurred{epoch}.jpg")
             i+=1
 
-    return running_loss
+    return running_loss/len(dataloader.dataset)
 
 def fit(model, dataloader, device, optimizer, criterion, epoch):
     model.train()
@@ -112,15 +112,17 @@ def fit(model, dataloader, device, optimizer, criterion, epoch):
         optimizer.step()
         running_loss += loss.item()
 
-    return running_loss
+    return running_loss/len(dataloader.dataset)
+
 
 def __main__():
     if __name__!='__main__':
         return
     read_settings("settings.yaml")
     os.makedirs('../outputs/saved_images', exist_ok=True)
-    for f in os.listdir(sets.get('blurred_path')): #clear the folder
-        os.remove(f"{sets.get('blurred_path')}/{f}")
+    for f in os.listdir('../outputs/saved_images'): #clear the folder
+        os.remove(f"../outputs/saved_images/{f}")
+
     imgs = get_images()
     blurr_imgs = gauss_blur(imgs)
 
@@ -147,8 +149,10 @@ def __main__():
 
     # the loss function
     criterion = nn.MSELoss()
+
     # the optimizer
     optimizer = optim.Adam(model.parameters(), lr=sets.get('learning_rate'))
+
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau( 
         optimizer,
         mode='min',
@@ -178,9 +182,9 @@ def __main__():
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
-    #plt.savefig('../outputs/loss.png')
-    plt.show()
+    #plt.savefig('../outputs/loss.png')    
 
     torch.save(model.state_dict(), '../outputs/model.pth')
+    plt.show()
 
 __main__()
