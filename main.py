@@ -63,14 +63,22 @@ def get_images():
     return images
 
 def gauss_blur(images):
-    
-    for f in os.listdir(sets.get('blurred_path')): #clear the folder
+    dir = os.listdir(sets.get('blurred_path'))
+    dir.sort()
+    if len(dir)==len(os.listdir(sets.get('dataset_path'))):
+        print("Images have already been created")
+        return images
+    for f in dir: #clear the folder
         os.remove(f"{sets.get('blurred_path')}/{f}")
     print("Cleared blurred images folder ...")
     os.makedirs(sets.get('blurred_path'), exist_ok = True)    
-    for i in range(len(images)):
+
+#TODO: check if there are already blurred images (fasten code)
+    i=0
+    for d in dir:
         images[i] = cv2.GaussianBlur(images[i], (31, 31), 0) #31 is a kernel size
-        cv2.imwrite(f"{sets.get('blurred_path')}/img_{i}.png", images[i])
+        cv2.imwrite(f"{sets.get('blurred_path')}/{d}", images[i])
+        i+=1
     print("The images have been blurred ...")
     return images
 
@@ -88,10 +96,10 @@ def validate(model, dataloader, val_data, device, criterion, epoch):
             loss = criterion(outputs, sharp_image)
             running_loss += loss.item()
             if epoch == 0 and i == int((len(val_data)/dataloader.batch_size)-1):
-                save_decoded_image(sharp_image.cpu().data, name=f"../outputs/saved_images/sharp{epoch}.jpg")
-                save_decoded_image(blur_image.cpu().data, name=f"../outputs/saved_images/blur{epoch}.jpg")
+                save_decoded_image(sharp_image.cpu().data, name=f"{sets.get('output')}/sharp{epoch}.jpg")
+                save_decoded_image(blur_image.cpu().data, name=f"{sets.get('output')}/blur{epoch}.jpg")
             if i == int((len(val_data)/dataloader.batch_size)-1):
-                save_decoded_image(outputs.cpu().data, name=f"../outputs/saved_images/val_deblurred{epoch}.jpg")
+                save_decoded_image(outputs.cpu().data, name=f"{sets.get('output')}/val_deblurred{epoch}.jpg")
             i+=1
 
     return running_loss/len(dataloader.dataset)
@@ -115,16 +123,17 @@ def fit(model, dataloader, device, optimizer, criterion, epoch):
 
     return running_loss/len(dataloader.dataset)
 
-#TODO: check if there are already blurred images (fasten code)
+
 
 
 def __main__():
     if __name__!='__main__':
         return
     read_settings("settings.yaml")
-    os.makedirs('../outputs/saved_images', exist_ok=True)
-    for f in os.listdir('../outputs/saved_images'): #clear the folder
-        os.remove(f"../outputs/saved_images/{f}")
+    
+    os.makedirs(sets.get('output'), exist_ok=True)
+    for f in os.listdir(sets.get('output')): #clear the folder
+        os.remove(f"sets.get('output')/{f}")
 
     imgs = get_images()
     blurr_imgs = gauss_blur(imgs)
