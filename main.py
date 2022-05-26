@@ -126,8 +126,8 @@ def __main__():
     for f in os.listdir('../outputs/saved_images'): #clear the folder
         os.remove(f"../outputs/saved_images/{f}")
 
-    #imgs = get_images()
-    #blurr_imgs = gauss_blur(imgs)
+    imgs = get_images()
+    blurr_imgs = gauss_blur(imgs)
 
     start_time = time.time()
 
