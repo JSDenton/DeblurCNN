@@ -4,7 +4,7 @@ dataset_path: "sharp"
 #validation_path: "C:/Users/JSO21/Downloads/DeblurGANv2-master/GOPRO/GOPRO/test/sharp"
 blurred_path: '../blurred' 
 output: '../outputs/saved_images'
-batch_size: 32
+batch_size: 2
 channel_num: 3
-num_epochs: 60
+num_epochs: 30
 workers: 2

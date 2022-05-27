@@ -133,7 +133,7 @@ def __main__():
     
     os.makedirs(sets.get('output'), exist_ok=True)
     for f in os.listdir(sets.get('output')): #clear the folder
-        os.remove(f"sets.get('output')/{f}")
+        os.remove(f"{sets.get('output')}/{f}")
 
     imgs = get_images()
     blurr_imgs = gauss_blur(imgs)
