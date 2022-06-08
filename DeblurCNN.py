@@ -7,7 +7,7 @@ import torch.utils.data
 class DeblurCNN(nn.Module):
     def __init__(self):
         super(DeblurCNN, self).__init__()
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=9, padding=2)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=9, padding=2) #7 1 also works
         self.conv2 = nn.Conv2d(64, 32, kernel_size=1, padding=2)
         self.conv3 = nn.Conv2d(32, 3, kernel_size=5, padding=2)
 

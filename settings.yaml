@@ -1,10 +1,8 @@
 learning_rate:  0.0003 #according to some video, that is the best LR for Adam
 image_size: 224
-dataset_path: "sharp"
-#validation_path: "C:/Users/JSO21/Downloads/DeblurGANv2-master/GOPRO/GOPRO/test/sharp"
+dataset_path: "./sharp" #SPECIFY PATH HERE
 blurred_path: '../blurred' 
 output: '../outputs/saved_images'
 batch_size: 2
 channel_num: 3
-num_epochs: 30
-workers: 2
+num_epochs: 10

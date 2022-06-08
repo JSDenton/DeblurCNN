@@ -138,7 +138,7 @@ def __main__():
     imgs = get_images()
     blurr_imgs = gauss_blur(imgs)
 
-    start_time = time.time()
+    
 
     transform = transforms.Compose([
         transforms.ToPILImage(),
@@ -187,6 +187,8 @@ def __main__():
     train_loss  = []
     val_loss = []  
 
+    start_time = time.time()
+    
     for epoch in range(sets.get('num_epochs')):
         print(f"Epoch {epoch+1} of {sets.get('num_epochs')}")
         train_epoch_loss = fit(model, dataloader, device, optimizer, criterion, epoch)
@@ -205,7 +207,7 @@ def __main__():
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
-    #plt.savefig('../outputs/loss.png')    
+    plt.savefig('../outputs/loss.png')    
 
     torch.save(model.state_dict(), '../outputs/model.pth')
     plt.show()
