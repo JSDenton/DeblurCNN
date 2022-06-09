@@ -1,0 +1,7 @@
+pod sprawozdanie:
+- kernel size
+- image size
+- batch size
+- number of epochs
+- learning rate
+- (opt) wykorzystać różne warstwy

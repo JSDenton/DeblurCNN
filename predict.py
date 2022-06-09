@@ -37,6 +37,7 @@ def predict(args):
 
         model = DeblurCNN().to(torch.device('cpu'))
         model.load_state_dict(torch.load('../outputs/model.pth'))
+        image = image[:,:,::-1]
         image = transform(image)
         model.eval()
 
@@ -47,7 +48,7 @@ def predict(args):
         #image.reshape(sets.get('image_size'), sets.get('image_size'), 1)
 
         #cv2.imwrite("./deblured_img.jpg", image)
-        # print(prediction.cpu().data)
+        #print(prediction.cpu().data)
 
         # plt.imshow(prediction.cpu().data)        
         # plt.show()        

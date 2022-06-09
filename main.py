@@ -158,6 +158,7 @@ def __main__():
     for i in b:
         sharp_imgs.append(i)
     
+
     # podział datasetu 3:1
     (x_train, x_val, y_train, y_val) = train_test_split(blurr_imgs, sharp_imgs, test_size=0.25)
 
