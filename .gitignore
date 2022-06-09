@@ -1,2 +1,5 @@
 # Ignore settings
 settings.yaml
+
+# ignore dataset
+sharp

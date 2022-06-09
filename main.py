@@ -63,16 +63,19 @@ def get_images():
     return images
 
 def gauss_blur(images):
-    d = os.listdir(sets.get('blurred_path'))
-    d.sort()
-    for f in d: #clear the folder
+    dir = os.listdir(sets.get('blurred_path'))
+    dir.sort()
+    if len(dir)==len(os.listdir(sets.get('dataset_path'))):
+        print("Images have already been created")
+        return images
+    for f in dir: #clear the folder
         os.remove(f"{sets.get('blurred_path')}/{f}")
     print("Cleared blurred images folder ...")
     os.makedirs(sets.get('blurred_path'), exist_ok = True)    
     i=0
-    for di in d:
+    for d in dir:
         images[i] = cv2.GaussianBlur(images[i], (31, 31), 0) #31 is a kernel size
-        cv2.imwrite(f"{sets.get('blurred_path')}/d.jpg", images[i])
+        cv2.imwrite(f"{sets.get('blurred_path')}/{d}", images[i])
         i+=1
     print("The images have been blurred ...")
     return images
@@ -91,10 +94,10 @@ def validate(model, dataloader, val_data, device, criterion, epoch):
             loss = criterion(outputs, sharp_image)
             running_loss += loss.item()
             if epoch == 0 and i == int((len(val_data)/dataloader.batch_size)-1):
-                save_decoded_image(sharp_image.cpu().data, name=f"../outputs/saved_images/sharp{epoch}.jpg")
-                save_decoded_image(blur_image.cpu().data, name=f"../outputs/saved_images/blur{epoch}.jpg")
+                save_decoded_image(sharp_image.cpu().data, name=f"{sets.get('output')}/sharp{epoch}.jpg")
+                save_decoded_image(blur_image.cpu().data, name=f"{sets.get('output')}/blur{epoch}.jpg")
             if i == int((len(val_data)/dataloader.batch_size)-1):
-                save_decoded_image(outputs.cpu().data, name=f"../outputs/saved_images/val_deblurred{epoch}.jpg")
+                save_decoded_image(outputs.cpu().data, name=f"{sets.get('output')}/val_deblurred{epoch}.jpg")
             i+=1
 
     return running_loss/len(dataloader.dataset)
@@ -118,29 +121,32 @@ def fit(model, dataloader, device, optimizer, criterion, epoch):
 
     return running_loss/len(dataloader.dataset)
 
-#TODO: check if there are already blurred images (fasten code)
 
 
 def __main__():
     if __name__!='__main__':
         return
-    read_settings("settings.yaml")
-    os.makedirs('../outputs/saved_images', exist_ok=True)
-    for f in os.listdir('../outputs/saved_images'): #clear the folder
-        os.remove(f"../outputs/saved_images/{f}")
+    read_settings("settings.yaml") # wczytanie ustawień z pliku (patrz: sekcja Settings)
+    
+    # wyczyszczenie folderu, gdzie przechowywane są outputy
+    os.makedirs(sets.get('output'), exist_ok=True)
+    for f in os.listdir(sets.get('output')): 
+        os.remove(f"{sets.get('output')}/{f}")
 
+    # sekcja: Wczytanie datasetu
     imgs = get_images()
+
+    # sekcja: Zblurowanie obrazków
     blurr_imgs = gauss_blur(imgs)
-
-    start_time = time.time()
-
+    
+    # transformata (patrz: opis sekcji)
     transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.Resize((sets.get('image_size'), sets.get('image_size'))),
-        transforms.ToTensor(),
-        #transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5))
+        transforms.ToTensor()
         ])
 
+    # wczytanie zblurowanych, a potem ostrych obrazków i posortowanie ich, oraz dodanie do list
     blurr_imgs = []
     a = os.listdir(sets.get('blurred_path'))
     a.sort()
@@ -152,24 +158,30 @@ def __main__():
     for i in b:
         sharp_imgs.append(i)
     
+    # podział datasetu 3:1
     (x_train, x_val, y_train, y_val) = train_test_split(blurr_imgs, sharp_imgs, test_size=0.25)
+
+    # stworzenie datasetu i dataloadera, na którym model się uczy
     dataset = DeblurDataset(x_train, y_train, transform, settings=sets)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=sets.get('batch_size'), shuffle = False)
+
+    # stworzenie datasetu i dataloadera, na którym model waliduje wyniki
     val_data = DeblurDataset(x_val, y_val, transform, settings=sets)
     valloader = torch.utils.data.DataLoader(val_data, batch_size=sets.get('batch_size'), shuffle =False)
 
+    # określenie urządzenia - rdzenie cuda (technologia NVidii), jeśli jest dostępna, a jeżeli nie, wówczas wykorzystanie procesora
+    device = torch.device("cuda:0" if (torch.cuda.is_available() and sets.get('ngpu') > 0) else "cpu")
 
-    device = torch.device("cuda:0" if (torch.cuda.is_available() and sets.get('ngpu') > 0) else "cpu") #using gpu (NVidia) for processing, otherwise using CPU
-
+    # stworzenie modelu i wysłanie go do urządzenia
     model = DeblurCNN().to(device)
-    #print(model)
 
-    # the loss function
+    # określenie funkcji straty (Mean Sqared Error - metoda średniego błędu kwadratowego)
     criterion = nn.MSELoss()
 
-    # the optimizer
+    # stworzenie optimizera (typu Adam)
     optimizer = optim.Adam(model.parameters(), lr=sets.get('learning_rate'))
 
+    # lr_scheduler (patrz: opis sekcji)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau( 
         optimizer,
         mode='min',
@@ -178,30 +190,45 @@ def __main__():
         verbose=True
     )
     
+    # listy przechowujące lossy (do wizualizacji)
     train_loss  = []
     val_loss = []  
 
+    # początek liczenia czasu wykonania
+    start_time = time.time()
+    
+    # główna pętla uczenia
     for epoch in range(sets.get('num_epochs')):
-        print(f"Epoch {epoch+1} of {sets.get('num_epochs')}")
+        print(f"Epoch {epoch+1} of {sets.get('num_epochs')}") # wypisanie który epoch jest
+
+        # uczenie (patrz: sekcja Funkcja trenowania)
         train_epoch_loss = fit(model, dataloader, device, optimizer, criterion, epoch)
+
+        # walidacja (patrz: sekcja Funkcja walidacji)
         val_epoch_loss = validate(model, dataloader, valloader, device, criterion, epoch)
+
         train_loss.append(train_epoch_loss)
         val_loss.append(val_epoch_loss)
+
+        # uruchomienie schedulera
         scheduler.step(val_epoch_loss)
 
-    
+    # zakończenie liczenia czasu
     end_time = time.time()
     print(f"learning took {end_time - start_time} seconds")
 
+    # wyświetlenie wykresu lossów
     plt.figure(figsize=(10, 7))
     plt.plot(train_loss, color='orange', label='train loss')
     plt.plot(val_loss, color='red', label='validataion loss')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
-    #plt.savefig('../outputs/loss.png')    
+    plt.savefig('../outputs/loss.png')    
 
+    # zapisanie modelu w pliku
     torch.save(model.state_dict(), '../outputs/model.pth')
     plt.show()
 
-__main__()
+
+__main__() #uruchomienie maina

@@ -3,7 +3,7 @@ import cv2
 
 class DeblurDataset(Dataset):
     def __init__(self, blur_paths, sharp_paths=None, transforms=None, settings=None):
-        self.X = blur_paths
+        self.X = blur_paths 
         self.y = sharp_paths
         self.transforms = transforms
         self.settings = settings
