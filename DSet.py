@@ -1,3 +1,4 @@
+from types import NoneType
 from torch.utils.data import Dataset
 import cv2
 
@@ -12,14 +13,18 @@ class DeblurDataset(Dataset):
         return (len(self.X))
     
     def __getitem__(self, i):
-        #print(f"blur in Dset: {self.X[i]}")
-        blur_image = cv2.imread(f"{self.settings.get('blurred_path')}/{self.X[i]}")
-        
+        blur_path = ""
+        sharp_path = ""
+        if type(self.settings) is not NoneType:            
+            blur_path = self.settings.get('blurred_path')
+            sharp_path = self.settings.get('dataset_path')
+        blur_image = cv2.imread(f"{blur_path}/{self.X[i]}")
+            
         if self.transforms:
             blur_image = self.transforms(blur_image)
-            
+                
         if self.y is not None:
-            sharp_image = cv2.imread(f"{self.settings.get('dataset_path')}/{self.y[i]}")
+            sharp_image = cv2.imread(f"{sharp_path}/{self.y[i]}")
             sharp_image = self.transforms(sharp_image)
             return (blur_image, sharp_image)
         else:
