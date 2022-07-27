@@ -15,7 +15,6 @@ def predict(args):
     # SPECIFY YOUR INPUT IMAGE PATH
     path = "./image.jpg"
     
-    
 
     blur = True
     for arg in args:
@@ -28,6 +27,8 @@ def predict(args):
         sets = load(file, Loader = Loader) #read the settings yaml file
     if blur:
         image = cv2.GaussianBlur(image, (31, 31), 0)
+        
+        cv2.imwrite('./blurred.jpg', image)
     with torch.no_grad():
         transform = transforms.Compose([
             transforms.ToPILImage(),
